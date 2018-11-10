@@ -1,0 +1,4 @@
+^LICENSE\.md$
+^docs$
+^_pkgdown\.yml$
+^\.travis\.yml$

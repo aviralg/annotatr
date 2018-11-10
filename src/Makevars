@@ -1,0 +1,5 @@
+all: $(SHLIB)
+
+gram.c: gram.y
+	bison -v gram.y -o gram.c
+
