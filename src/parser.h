@@ -120,11 +120,11 @@ LibExtern int	R_ParseContextLast INI_as(0); /* last character in context buffer 
 LibExtern int	R_ParseContextLine; /* Line in file of the above */
 
 /* Evaluation Environment */
-extern0 SEXP	R_CurrentExpr;	    /* Currently evaluating expression */
+SEXP	annotatr_current_expr;	    /* Currently evaluating expression */
 
 /* used in package utils */
-extern Rboolean known_to_be_latin1 INI_as(FALSE);
-extern0 Rboolean known_to_be_utf8 INI_as(FALSE);
+Rboolean annotatr_known_to_be_latin1 INI_as(FALSE);
+Rboolean annotatr_known_to_be_utf8 INI_as(FALSE);
 
 #define R_EOF	-1
 
@@ -159,8 +159,7 @@ void R_FinalizeSrcRefState(void);
 
 SEXP R_Parse1Buffer(IoBuffer*, int, ParseStatus *); /* in ReplIteration,
 						       R_ReplDLLdo1 */
-SEXP R_ParseBuffer(IoBuffer*, int, ParseStatus *, SEXP, SEXP); /* in source.c */
-SEXP R_Parse1File(FILE*, int, ParseStatus *); /* in R_ReplFile */
+SEXP annotatr_parse_file(FILE*, int, ParseStatus *); /* in R_ReplFile */
 SEXP R_ParseFile(FILE*, int, ParseStatus *, SEXP);  /* in edit.c */
 
 #ifndef HAVE_RCONNECTION_TYPEDEF

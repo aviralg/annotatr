@@ -505,7 +505,7 @@ static int xxgetc(void)
     	ParseState.xxparseno += 1;
     } else {
         /* We only advance the column for the 1st byte in UTF-8, so handle later bytes specially */
-	if (!known_to_be_utf8 || (unsigned char)c < 0x80 || 0xC0 <= (unsigned char)c)
+	if (!annotatr_known_to_be_utf8 || (unsigned char)c < 0x80 || 0xC0 <= (unsigned char)c)
             ParseState.xxcolno++;
     	ParseState.xxbyteno++;
     }
@@ -603,7 +603,7 @@ static int xxvalue(SEXP v, int k, YYLTYPE *lloc)
 	    REPROTECT(SrcRefs = listAppend(SrcRefs, list1(makeSrcref(lloc, ParseState.SrcFile))), srindex);
 	UNPROTECT_PTR(v);
     }
-    R_CurrentExpr = v;
+    annotatr_current_expr = v;
     return k;
 }
 
@@ -926,8 +926,8 @@ static SEXP mkString2(const char *s, size_t len, Rboolean escaped)
     SEXP t;
     cetype_t enc = CE_NATIVE;
 
-    if(known_to_be_latin1) enc= CE_LATIN1;
-    else if(!escaped && known_to_be_utf8) enc = CE_UTF8;
+    if(annotatr_known_to_be_latin1) enc= CE_LATIN1;
+    else if(!escaped && annotatr_known_to_be_utf8) enc = CE_UTF8;
 
     PROTECT(t = allocVector(STRSXP, 1));
     SET_STRING_ELT(t, 0, mkCharLenCE(s, (int) len, enc));
@@ -1116,7 +1116,7 @@ static SEXP NextArg(SEXP l, SEXP s, SEXP tag)
  *  The following routines parse a single expression:
  *
  *
- *	SEXP R_Parse1File(FILE *fp, int gencode, ParseStatus *status, Rboolean first)
+ *	SEXP annotatr_parse_file(FILE *fp, int gencode, ParseStatus *status, Rboolean first)
  *   (used for R_ReplFile in main.c)
  *
  *	SEXP R_Parse1Buffer(IoBuffer *buffer, int gencode, ParseStatus *status, Rboolean first)
@@ -1138,7 +1138,7 @@ static SEXP NextArg(SEXP l, SEXP s, SEXP tag)
  *	SEXP R_ParseFile(FILE *fp, int n, ParseStatus *status, SEXP srcfile)
  *    (used for do_edit in file edit.c)
  *
- *	SEXP R_ParseVector(SEXP *text, int n, ParseStatus *status, SEXP srcfile)
+ *	SEXP annotatr_parse_vector(SEXP *text, int n, ParseStatus *status, SEXP srcfile)
  *    (public, and used by parse(text=) in file source.c)
  *
  *	SEXP R_ParseBuffer(IoBuffer *buffer, int n, ParseStatus *status, SEXP prompt, SEXP srcfile)
@@ -1303,7 +1303,7 @@ static void ParseContextInit(void)
     initData();
 }
 
-static SEXP R_Parse1(ParseStatus *status)
+static SEXP annotatr_parse_helper(ParseStatus *status)
 {
     switch(yyparse()) {
     case 0:                     /* End of file */
@@ -1322,7 +1322,7 @@ static SEXP R_Parse1(ParseStatus *status)
 	*status = PARSE_OK;
 	break;
     }
-    return R_CurrentExpr;
+    return annotatr_current_expr;
 }
 
 static FILE *fp_parse;
@@ -1334,7 +1334,7 @@ static int file_getc(void)
 
 /* used in main.c */
 attribute_hidden
-SEXP R_Parse1File(FILE *fp, int gencode, ParseStatus *status)
+SEXP annotatr_parse_file(FILE *fp, int gencode, ParseStatus *status)
 {
     int savestack;
     savestack = R_PPStackTop;    
@@ -1343,9 +1343,9 @@ SEXP R_Parse1File(FILE *fp, int gencode, ParseStatus *status)
     GenerateCode = gencode;
     fp_parse = fp;
     ptr_getc = file_getc;
-    R_Parse1(status);
+    annotatr_parse_helper(status);
     R_PPStackTop = savestack;
-    return R_CurrentExpr;
+    return annotatr_current_expr;
 }
 
 static IoBuffer *iob;
@@ -1378,7 +1378,7 @@ SEXP R_Parse1Buffer(IoBuffer *buffer, int gencode, ParseStatus *status)
     GenerateCode = gencode;
     iob = buffer;
     ptr_getc = buffer_getc;
-    R_Parse1(status);
+    annotatr_parse_helper(status);
     if (gencode && keepSource) {
     	if (ParseState.didAttach) {
    	    int buflen = R_IoBufferReadOffset(buffer);
@@ -1402,7 +1402,7 @@ SEXP R_Parse1Buffer(IoBuffer *buffer, int gencode, ParseStatus *status)
     }
     R_PPStackTop = savestack;
     R_FinalizeSrcRefState();
-    return R_CurrentExpr;
+    return annotatr_current_expr;
 }
 
 static TextBuffer *txtb;
@@ -1412,7 +1412,7 @@ static int text_getc(void)
     return R_TextBufferGetc(txtb);
 }
 
-static SEXP R_Parse(int n, ParseStatus *status, SEXP srcfile)
+static SEXP annotatr_parse(int n, ParseStatus *status, SEXP srcfile)
 {
     int savestack;
     int i;
@@ -1435,7 +1435,7 @@ static SEXP R_Parse(int n, ParseStatus *status, SEXP srcfile)
     for(i = 0; ; ) {
 	if(n >= 0 && i >= n) break;
 	ParseInit();
-	rval = R_Parse1(status);
+	rval = annotatr_parse_helper(status);
 	switch(*status) {
 	case PARSE_NULL:
 	    break;
@@ -1480,11 +1480,11 @@ SEXP R_ParseFile(FILE *fp, int n, ParseStatus *status, SEXP srcfile)
     GenerateCode = 1;
     fp_parse = fp;
     ptr_getc = file_getc;
-    return R_Parse(n, status, srcfile);
+    return annotatr_parse(n, status, srcfile);
 }
 
 /* This one is public, and used in source.c */
-SEXP R_ParseVector(SEXP text, int n, ParseStatus *status, SEXP srcfile)
+SEXP annotatr_parse_vector(SEXP text, int n, ParseStatus *status, SEXP srcfile)
 {
     SEXP rval;
     TextBuffer textb;
@@ -1492,7 +1492,7 @@ SEXP R_ParseVector(SEXP text, int n, ParseStatus *status, SEXP srcfile)
     txtb = &textb;
     GenerateCode = 1;
     ptr_getc = text_getc;
-    rval = R_Parse(n, status, srcfile);
+    rval = annotatr_parse(n, status, srcfile);
     R_TextBufferFree(&textb);
     return rval;
 }
@@ -3381,8 +3381,8 @@ static void growID( int target ){
 SEXP attribute_visible parse_with_annotations(SEXP text)
 {
     SEXP s;
-    Rboolean old_latin1 = known_to_be_latin1,
-	old_utf8 = known_to_be_utf8, allKnown = TRUE;
+    Rboolean old_latin1 = annotatr_known_to_be_latin1,
+	old_utf8 = annotatr_known_to_be_utf8, allKnown = TRUE;
     int i;
     ParseStatus status;
 
@@ -3403,13 +3403,13 @@ SEXP attribute_visible parse_with_annotations(SEXP text)
 		break;
 	    }
 	if(allKnown) {
-	    known_to_be_latin1 = old_latin1;
-	    known_to_be_utf8 = old_utf8;
+	    annotatr_known_to_be_latin1 = old_latin1;
+	    annotatr_known_to_be_utf8 = old_utf8;
 	}
-	s = R_ParseVector(text, -1, &status, R_NilValue);
+	s = annotatr_parse_vector(text, -1, &status, R_NilValue);
 	if (status != PARSE_OK) parseError(text, R_ParseError);
     }
-    known_to_be_latin1 = old_latin1;
-    known_to_be_utf8 = old_utf8;
+    annotatr_known_to_be_latin1 = old_latin1;
+    annotatr_known_to_be_utf8 = old_utf8;
     return s;
 }
