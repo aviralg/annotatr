@@ -3378,6 +3378,8 @@ static void growID( int target ){
     ParseState.ids = bigger;
 }
 
+SEXP R_WholeSrcrefSymbol = NULL;
+
 SEXP attribute_visible parse_with_annotations(SEXP text)
 {
     SEXP s;
@@ -3385,7 +3387,7 @@ SEXP attribute_visible parse_with_annotations(SEXP text)
 	old_utf8 = annotatr_known_to_be_utf8, allKnown = TRUE;
     int i;
     ParseStatus status;
-
+    R_WholeSrcrefSymbol = Rf_install("wholeSrcref");
 	s = R_NilValue;
 	if (Rf_length(text) > 0) {
 	/* If 'text' has known encoding then we can be sure it will be

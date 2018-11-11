@@ -81,10 +81,6 @@ typedef enum {
 FILE *	_fopen(const char *filename, const char *mode);
 int	_fgetc(FILE*);
 
-
-/* definitions for R 2.16.0 */
-
-int utf8clen(char c);
 # define Mbrtowc        Rf_mbrtowc
 # define ucstomb        Rf_ucstomb
 extern Rboolean utf8locale, mbcslocale;
@@ -105,12 +101,12 @@ extern size_t Mbrtowc(wchar_t *wc, const char *s, size_t n, mbstate_t *ps);
 
 LibExtern SEXP  R_SrcfileSymbol;    /* "srcfile" */
 LibExtern SEXP  R_SrcrefSymbol;     /* "srcref" */
-extern0 SEXP	R_WholeSrcrefSymbol;   /* "wholeSrcref" */
+LibExtern SEXP	R_WholeSrcrefSymbol;   /* "wholeSrcref" */
 
 /* Objects Used In Parsing  */
 LibExtern int	R_ParseError	INI_as(0); /* Line where parse error occurred */
-extern0 int	R_ParseErrorCol;    /* Column of start of token where parse error occurred */
-extern0 SEXP	R_ParseErrorFile;   /* Source file where parse error was seen.  Either a
+int	R_ParseErrorCol;    /* Column of start of token where parse error occurred */
+SEXP	R_ParseErrorFile;   /* Source file where parse error was seen.  Either a
 				       STRSXP or (when keeping srcrefs) a SrcFile ENVSXP */
 #define PARSE_ERROR_SIZE 256	    /* Parse error messages saved here */
 LibExtern char	R_ParseErrorMsg[PARSE_ERROR_SIZE] INI_as("");
@@ -185,7 +181,7 @@ LibExtern SEXP*	R_PPStack;	    /* The pointer protection stack */
 # define installTrChar		Rf_installTrChar
 # define EncodeChar             Rf_EncodeChar
 # define NewEnvironment		Rf_NewEnvironment
-# define wcstoutf8		Rf_wcstoutf8
+//# define wcstoutf8		Rf_wcstoutf8
 SEXP Rf_installTrChar(SEXP);
 #define checkArity(a,b) Rf_checkArityCall(a,b,call)
 void Rf_checkArityCall(SEXP, SEXP, SEXP);
@@ -193,7 +189,10 @@ void Rf_checkArityCall(SEXP, SEXP, SEXP);
 const char *EncodeChar(SEXP);
 
 int ENC_KNOWN(SEXP x);
-int IS_ASCII(SEXP x);
+//#define IS_ASCII(x) ((x)->sxpinfo.gp & ASCII_MASK)
+// taken from Defn.h
+#define ASCII_MASK (1<<6)
+#define IS_ASCII(x) (*(int16_t *)((char *)(x) + 1) & ASCII_MASK)
 
 /* CHARSXP charset bits */
 #define BYTES_MASK (1<<1)
@@ -206,5 +205,6 @@ int IS_ASCII(SEXP x);
 void NORET UNIMPLEMENTED_TYPE(const char *s, SEXP x);
 size_t wcstoutf8(char *s, const wchar_t *wc, size_t n);
 SEXP NewEnvironment(SEXP, SEXP, SEXP);
+int utf8clen(char c);
 
 #endif
