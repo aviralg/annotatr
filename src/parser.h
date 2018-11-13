@@ -102,7 +102,7 @@ extern size_t Mbrtowc(wchar_t *wc, const char *s, size_t n, mbstate_t *ps);
 LibExtern SEXP  R_SrcfileSymbol;    /* "srcfile" */
 LibExtern SEXP  R_SrcrefSymbol;     /* "srcref" */
 LibExtern SEXP	R_WholeSrcrefSymbol;   /* "wholeSrcref" */
-
+LibExtern SEXP  R_AnnotationSymbol; /* annotation */
 /* Objects Used In Parsing  */
 LibExtern int	R_ParseError	INI_as(0); /* Line where parse error occurred */
 int	R_ParseErrorCol;    /* Column of start of token where parse error occurred */
