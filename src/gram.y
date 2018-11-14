@@ -318,7 +318,7 @@ static SEXP xxannotate(SEXP, SEXP, SEXP);
 %left		ELSE
 %right		LEFT_ASSIGN
 %right		EQ_ASSIGN
-%left		RIGHT_ASSIGN
+%right    RIGHT_ASSIGN
 %left		'~' TILDE
 %left		OR OR2
 %left		AND AND2
@@ -333,7 +333,7 @@ static SEXP xxannotate(SEXP, SEXP, SEXP);
 %left		'$' '@'
 %left		NS_GET NS_GET_INT
 %nonassoc	'(' '[' LBB
-
+%right RIGHT_ARROW
 %%
 
 prog	:	END_OF_INPUT			{ YYACCEPT; }
@@ -355,8 +355,17 @@ annotated_expr_or_assign : expr_or_assign                           { $$ = xxlif
                          ;
 
 annotation : SYMBOL                                { $$ = $1; setId($$, @$); }
-           | SYMBOL LT_LT annotated_exprlist GT_GT { $$ = xxsubscript($1,$2,$3); setId($$, @$); }
-           | LT_LT annotated_exprlist GT_GT        { $$ = xxparen($1,$2); setId( $$, @$); }
+           | SYMBOL LT_LT annotated_exprlist GT_GT { $$ = xxbinary($2,$1,$3); setId($$, @$); }
+           | SYMBOL '[' annotated_exprlist ']' { $$ = xxsubscript($1,$2,$3); setId($$, @$); }
+           | arrow_annotation RIGHT_ARROW arrow_annotation  { $$ = xxbinary($2,$1, $3); setId( $$, @$); }
+           | '('annotation AND annotation ')' %prec RIGHT_ARROW { $$ = xxbinary($3,$2,$4);	setId( $$, @$); }
+           | '('annotation OR annotation ')'			{ $$ = xxbinary($3,$2,$4);	setId( $$, @$); }
+           | '?'                                 { $$ = PROTECT(install("?")); }
+           | '(' annotation ')' { $$ = xxparen($1,$2);	setId( $$, @$); }
+           ;
+
+arrow_annotation : annotation { $$ = $1; setId($$, @$); }
+                 | LT_LT annotated_exprlist GT_GT { $$ = $2; setId($$, @$); }
 //| annotation RIGHT_ARROW annotation     { $$ = xxbinary($2, $1, $3); setId($$, @$); }
            ;
 
@@ -366,7 +375,7 @@ annotation_list: ANNOTATION annotation { $$ = xxannotationlist1($2); }
 
 annotated_exprlist:					            { $$ = xxexprlist0();	setId( $$, @$); }
                   |	annotated_expr_or_assign			{ $$ = xxexprlist1($1, &@1); }
-                  |	annotated_exprlist ',' annotated_expr_or_assign	{ $$ = xxexprlist2($1, $3, &@3); }
+                  |	annotated_exprlist cr ',' annotated_expr_or_assign	{ $$ = xxexprlist2($1, $4, &@4); }
                   ;
 
 expr	: 	NUM_CONST			{ $$ = $1;	setId( $$, @$); }
@@ -1915,6 +1924,7 @@ static void yyerror(const char *s)
 	"NS_GET",	"'::'",
 	"NS_GET_INT",	"':::'",
   "ANNOTATION", "'@:'",
+  "RIGHT_ARROW", "'=>'",
 	0
     };
     static char const yyunexpected[] = "syntax error, unexpected ";
@@ -2876,7 +2886,10 @@ static int token(void)
 	if (nextchar('=')) {
 	    yylval = install_and_save("==");
 	    return EQ;
-	}
+	} else if(nextchar('>')) {
+      yylval = install_and_save("=>");
+      return RIGHT_ARROW;
+  }
 	yylval = install_and_save("=");
 	return EQ_ASSIGN;
     case ':':
