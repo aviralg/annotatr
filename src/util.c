@@ -234,44 +234,6 @@ static struct {
 } Type2Table[MAX_NUM_SEXPTYPE];
 
 
-static int findTypeInTypeTable(SEXPTYPE t)
- {
-    for (int i = 0; TypeTable[i].str; i++)
-	if (TypeTable[i].type == t) return i;
-
-    return -1;
-}
-
-// called from main.c
-attribute_hidden
-void InitTypeTables(void) {
-
-    /* Type2Table */
-    for (int type = 0; type < MAX_NUM_SEXPTYPE; type++) {
-	int j = findTypeInTypeTable(type);
-
-	if (j != -1) {
-	    const char *cstr = TypeTable[j].str;
-	    SEXP rchar = PROTECT(mkChar(cstr));
-	    SEXP rstr = ScalarString(rchar);
-	    MARK_NOT_MUTABLE(rstr);
-	    R_PreserveObject(rstr);
-	    UNPROTECT(1); /* rchar */
-	    SEXP rsym = install(cstr);
-
-	    Type2Table[type].cstrName = cstr;
-	    Type2Table[type].rcharName = rchar;
-	    Type2Table[type].rstrName = rstr;
-	    Type2Table[type].rsymName = rsym;
-	} else {
-	    Type2Table[type].cstrName = NULL;
-	    Type2Table[type].rcharName = NULL;
-	    Type2Table[type].rstrName = NULL;
-	    Type2Table[type].rsymName = NULL;
-	}
-    }
-}
-
 SEXP type2str_nowarn(SEXPTYPE t) /* returns a CHARSXP */
 {
     if (t < MAX_NUM_SEXPTYPE) { /* FIXME: branch not really needed */
@@ -354,9 +316,9 @@ void NORET UNIMPLEMENTED_TYPE(const char *s, SEXP x)
 /* Previous versions of R (< 2.3.0) assumed wchar_t was in Unicode
    (and it commonly is).  These functions do not. */
 # ifdef WORDS_BIGENDIAN
-static const char UCS2ENC[] = "UCS-2BE";
+
 # else
-static const char UCS2ENC[] = "UCS-2LE";
+
 # endif
 
 
@@ -581,22 +543,6 @@ SEXP dcar(SEXP l)
 SEXP dcdr(SEXP l)
 {
     return(CDR(l));
-}
-
-
-static void isort_with_index(int *x, int *indx, int n)
-{
-    int i, j, h, iv, v;
-
-    for (h = 1; h <= n / 9; h = 3 * h + 1);
-    for (; h > 0; h /= 3)
-	for (i = h; i < n; i++) {
-	    v = x[i]; iv = indx[i];
-	    j = i;
-	    while (j >= h && x[j - h] > v)
-		 { x[j] = x[j - h]; indx[j] = indx[j-h]; j -= h; }
-	    x[j] = v; indx[j] = iv;
-	}
 }
 
 

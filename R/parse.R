@@ -1,5 +1,5 @@
-parse_text <- function(text) {
-    .Call("parse_with_annotations", as.character(text))
+parse_text <- function(..., sep = "\n", collapse = NULL) {
+    .Call("parse_with_annotations", paste(..., sep = sep, collapse = NULL))
 }
 
 

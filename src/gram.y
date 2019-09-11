@@ -284,11 +284,10 @@ static SEXP	xxparen(SEXP, SEXP);
 static SEXP	xxsubscript(SEXP, SEXP, SEXP);
 static SEXP	xxexprlist(SEXP, YYLTYPE *, SEXP);
 static int	xxvalue(SEXP, int, YYLTYPE *);
-static SEXP xxannotationlist1(SEXP);
-static SEXP xxannotationlist2(SEXP, SEXP);
-static SEXP xxliftannotation(SEXP);
-static SEXP xxannotate(SEXP, SEXP, SEXP);
-
+static SEXP xxannotate(SEXP, SEXP);
+static SEXP xxannotationlist(SEXP);
+static SEXP xxprependannotation(SEXP, SEXP);
+static SEXP xxappendannotation(SEXP, SEXP);
 #define YYSTYPE		SEXP
 
 %}
@@ -338,8 +337,8 @@ static SEXP xxannotate(SEXP, SEXP, SEXP);
 
 prog	:	END_OF_INPUT			{ YYACCEPT; }
 	|	'\n'				{ yyresult = xxvalue(NULL,2,NULL);	goto yyreturn; }
-	|	annotated_expr_or_assign '\n'			{ yyresult = xxvalue($1,3,&@1);	goto yyreturn; }
-	|	annotated_expr_or_assign ';'			{ yyresult = xxvalue($1,4,&@1);	goto yyreturn; }
+	|	expr_or_assign '\n'			{ yyresult = xxvalue($1,3,&@1);	goto yyreturn; }
+	|	expr_or_assign ';'			{ yyresult = xxvalue($1,4,&@1);	goto yyreturn; }
 	|	error	 			{ YYABORT; }
 	;
 
@@ -349,10 +348,6 @@ expr_or_assign  :    expr                       { $$ = $1; }
 
 equal_assign    :    expr EQ_ASSIGN expr_or_assign              { $$ = xxbinary($2,$1,$3); }
                 ;
-
-annotated_expr_or_assign : expr_or_assign                           { $$ = xxliftannotation($1); }
-                         | annotation_list expr_or_assign %prec '?' { $$ = xxannotate(install("@:"), $1, $2); setId($$, @$); }
-                         ;
 
 annotation : SYMBOL                                { $$ = $1; setId($$, @$); }
            | SYMBOL LT_LT annotated_exprlist GT_GT { $$ = xxbinary($2,$1,$3); setId($$, @$); }
@@ -369,13 +364,13 @@ arrow_annotation : annotation { $$ = $1; setId($$, @$); }
 //| annotation RIGHT_ARROW annotation     { $$ = xxbinary($2, $1, $3); setId($$, @$); }
            ;
 
-annotation_list: ANNOTATION annotation { $$ = xxannotationlist1($2); }
-               | annotation_list ANNOTATION annotation { $$ = xxannotationlist2($1, $3); }
+annotation_list: ANNOTATION annotation { $$ = xxannotationlist($2); }
+               | annotation_list ANNOTATION annotation { $$ = xxappendannotation($1, $3); }
                ;
 
 annotated_exprlist:					            { $$ = xxexprlist0();	setId( $$, @$); }
-                  |	annotated_expr_or_assign			{ $$ = xxexprlist1($1, &@1); }
-                  |	annotated_exprlist cr ',' annotated_expr_or_assign	{ $$ = xxexprlist2($1, $4, &@4); }
+                  |	expr_or_assign			{ $$ = xxexprlist1($1, &@1); }
+                  |	annotated_exprlist cr ',' expr_or_assign	{ $$ = xxexprlist2($1, $4, &@4); }
                   ;
 
 expr	: 	NUM_CONST			{ $$ = $1;	setId( $$, @$); }
@@ -439,6 +434,8 @@ expr	: 	NUM_CONST			{ $$ = $1;	setId( $$, @$); }
 	|	expr '@' STR_CONST		{ $$ = xxbinary($2,$1,$3);	setId( $$, @$); }
 	|	NEXT				{ $$ = xxnxtbrk($1);	setId( $$, @$); }
 	|	BREAK				{ $$ = xxnxtbrk($1);	setId( $$, @$); }
+  | ANNOTATION annotation expr %prec '?' { $$ = xxannotate($2, $3); setId($$, @$); }
+  | ANNOTATION annotation '\n' expr %prec '?' { $$ = xxannotate($2, $4); setId($$, @$); }
 	;
 
 
@@ -653,16 +650,14 @@ static SEXP xxnullformal()
 static SEXP xxfirstformal0(SEXP annotations, SEXP sym)
 {
     SEXP ans;
-    SEXP current_annotations;
-    UNPROTECT_PTR(sym);
     if (GenerateCode) {
-	PROTECT(ans = FirstArg(R_MissingArg, sym));
-        if(annotations != R_NilValue) {
-            PROTECT(current_annotations = list1(annotations));
-            SET_TAG(current_annotations, sym);
-            setAttrib(CDR(ans), R_AnnotationSymbol, current_annotations);
-            UNPROTECT(1);
-        }
+	     SEXP arg = PROTECT(FirstArg(R_MissingArg, sym));
+       if(annotations != R_NilValue) {
+           SEXP tagged_anns = PROTECT(FirstArg(annotations, sym));
+           setAttrib(CDR(arg), R_AnnotationSymbol, tagged_anns);
+           UNPROTECT(1);
+       }
+       ans = arg;
     }
     else
 	PROTECT(ans = R_NilValue);
@@ -672,15 +667,14 @@ static SEXP xxfirstformal0(SEXP annotations, SEXP sym)
 static SEXP xxfirstformal1(SEXP annotations, SEXP sym, SEXP expr)
 {
     SEXP ans;
-    SEXP current_annotations;
     if (GenerateCode) {
-	PROTECT(ans = FirstArg(expr, sym));
-  if(annotations != R_NilValue) {
-    PROTECT(current_annotations = list1(annotations));
-    SET_TAG(current_annotations, sym);
-    setAttrib(CDR(ans), R_AnnotationSymbol, current_annotations);
-    UNPROTECT(1);
-  }
+        SEXP arg = PROTECT(FirstArg(expr, sym));
+        if (annotations != R_NilValue) {
+            SEXP tagged_anns = PROTECT(FirstArg(annotations, sym));
+            setAttrib(CDR(arg), R_AnnotationSymbol, tagged_anns);
+            UNPROTECT(1);
+        }
+        ans = expr;
     }
     else
 	PROTECT(ans = R_NilValue);
@@ -692,37 +686,25 @@ static SEXP xxfirstformal1(SEXP annotations, SEXP sym, SEXP expr)
 static SEXP xxaddformal0(SEXP formlist, SEXP sym, SEXP annotations, YYLTYPE *lloc)
 {
     SEXP ans;
-    SEXP previous_annotations;
-    SEXP current_annotations = R_NilValue;
     if (GenerateCode) {
-	CheckFormalArgs(formlist, sym, lloc);
-  PROTECT(previous_annotations = getAttrib(CDR(formlist), R_AnnotationSymbol));
-  setAttrib(CDR(formlist), R_AnnotationSymbol, R_NilValue);
-	PROTECT(ans = NextArg(formlist, R_MissingArg, sym));
-  if(annotations != R_NilValue) {
-    PROTECT(current_annotations = list1(annotations));
-    SET_TAG(current_annotations, sym);
-    if(previous_annotations == R_NilValue) {
-      setAttrib(CDR(ans),
-                R_AnnotationSymbol,
-                current_annotations);
-    } else {
-      setAttrib(CDR(ans),
-                R_AnnotationSymbol,
-                listAppend(previous_annotations,
-                           current_annotations));
-    }
-    UNPROTECT(1);
-  } else {
-    if(previous_annotations != R_NilValue) {
-      setAttrib(CDR(ans), R_AnnotationSymbol, previous_annotations);
-    }
-  }
+        CheckFormalArgs(formlist, sym, lloc);
+        SEXP arg = PROTECT(NextArg(formlist, R_MissingArg, sym));
+        if (annotations != R_NilValue) {
+            SEXP tagged_anns;
+            SEXP previous_anns = getAttrib(CDR(formlist), R_AnnotationSymbol);
+            if(previous_anns != R_NilValue) {
+              tagged_anns = PROTECT(NextArg(previous_anns, annotations, sym));
+            } else {
+              tagged_anns = PROTECT(FirstArg(annotations, sym));
+            }
+            setAttrib(CDR(arg), R_AnnotationSymbol, tagged_anns);
+            UNPROTECT(1);
+        }
+        ans = arg;
     }
     else {
 	PROTECT(ans = R_NilValue);
     }
-    UNPROTECT_PTR(previous_annotations);
     UNPROTECT_PTR(sym);
     UNPROTECT_PTR(formlist);
     return ans;
@@ -731,37 +713,26 @@ static SEXP xxaddformal0(SEXP formlist, SEXP sym, SEXP annotations, YYLTYPE *llo
 static SEXP xxaddformal1(SEXP formlist, SEXP annotations, SEXP sym, SEXP expr, YYLTYPE *lloc)
 {
     SEXP ans;
-    SEXP previous_annotations;
-    SEXP current_annotations = R_NilValue;
+    SEXP arg;
     if (GenerateCode) {
-	CheckFormalArgs(formlist, sym, lloc);
-        PROTECT(previous_annotations = getAttrib(CDR(formlist), R_AnnotationSymbol));
-        setAttrib(CDR(formlist), R_AnnotationSymbol, R_NilValue);
-	PROTECT(ans = NextArg(formlist, expr, sym));
-        if(annotations != R_NilValue) {
-            PROTECT(current_annotations = list1(annotations));
-            SET_TAG(current_annotations, sym);
-            if(previous_annotations == R_NilValue) {
-                setAttrib(CDR(ans),
-                          R_AnnotationSymbol,
-                          current_annotations);
+        CheckFormalArgs(formlist, sym, lloc);
+        PROTECT(arg = NextArg(formlist, expr, sym));
+        if (annotations != R_NilValue) {
+            SEXP tagged_anns;
+            SEXP previous_anns = getAttrib(CDR(formlist), R_AnnotationSymbol);
+            if (previous_anns != R_NilValue) {
+                tagged_anns = PROTECT(NextArg(previous_anns, annotations, sym));
             } else {
-                setAttrib(CDR(ans),
-                          R_AnnotationSymbol,
-                          listAppend(previous_annotations,
-                                     current_annotations));
+                tagged_anns = PROTECT(FirstArg(annotations, sym));
             }
+            setAttrib(CDR(arg), R_AnnotationSymbol, tagged_anns);
             UNPROTECT(1);
-        } else {
-            if(previous_annotations != R_NilValue) {
-              setAttrib(CDR(ans), R_AnnotationSymbol, previous_annotations);
-            }
         }
+        ans = arg;
     }
     else {
 	PROTECT(ans = R_NilValue);
     }
-    UNPROTECT_PTR(previous_annotations);
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     UNPROTECT_PTR(formlist);
@@ -1041,14 +1012,23 @@ static SEXP xxdefun(SEXP fname, SEXP formals, SEXP body, YYLTYPE *lloc)
 {
 
     SEXP ans, srcref;
-
+    int protect_counter = 0;
     if (GenerateCode) {
     	if (ParseState.keepSrcRefs) {
     	    srcref = makeSrcref(lloc, ParseState.SrcFile);
     	    ParseState.didAttach = TRUE;
     	} else
     	    srcref = R_NilValue;
-	PROTECT(ans = lang4(fname, CDR(formals), body, srcref));
+      SEXP formal_anns = getAttrib(CDR(formals), R_AnnotationSymbol);
+      setAttrib(CDR(formals), R_AnnotationSymbol, R_NilValue);
+      SEXP expr = PROTECT(lang4(fname, CDR(formals), body, srcref)); ++protect_counter;
+      if(formal_anns != R_NilValue) {
+        formal_anns = PROTECT(LCONS(install("expression"), CDR(formal_anns))); ++protect_counter;
+        formal_anns = LCONS(install("expression"), CDR(FirstArg(formal_anns, install("formals"))));
+        expr = PROTECT(lang3(R_AnnotationSymbol, formal_anns, expr)); ++protect_counter;
+      }
+      UNPROTECT(protect_counter);
+      PROTECT(ans = expr);
     } else
 	PROTECT(ans = R_NilValue);
     UNPROTECT_PTR(body);
@@ -1134,63 +1114,66 @@ static SEXP xxexprlist(SEXP a1, YYLTYPE *lloc, SEXP a2)
     return ans;
 }
 
-static SEXP xxliftannotation(SEXP expr) {
-    SEXP ans;
-    SEXP annotations;
-    if(TYPEOF(expr) == LANGSXP && TYPEOF(CAR(expr)) == SYMSXP && !strcmp(CHAR(PRINTNAME(CAR(expr))), "function")) {
-        PROTECT(annotations = getAttrib(CADR(expr), R_AnnotationSymbol));
-        if(annotations != R_NilValue) {
-            setAttrib(CADR(expr), install("@:"), R_NilValue);
-      /* SEXP args = xxsublist2(xxsublist2(xxsublist1(xxsub1(list1(), NULL)), */
-      /*                                   xxsublist1(xxsub1(expr, NULL))), */
-      /*                        xxsublist1(xxsub1(annotations, NULL))); */
-            PROTECT(ans = lang4(install("@:"), R_NilValue, expr, annotations));
-    } else {
-        PROTECT(ans = expr);
-    }
-    UNPROTECT_PTR(annotations);
+static SEXP xxannotate(SEXP annotation, SEXP expr) {
+  SEXP ans;
+  if (GenerateCode) {
+      if (TYPEOF(expr) == LANGSXP && TYPEOF(CAR(expr)) == SYMSXP &&
+          !strcmp(CHAR(PRINTNAME(CAR(expr))),
+                  CHAR(PRINTNAME(R_AnnotationSymbol)))) {
+          SEXP old_anns = PROTECT(CADR(expr));
+          SEXP new_anns = PROTECT(xxprependannotation(annotation, old_anns));
+          SETCADR(expr, new_anns);
+          UNPROTECT(3);
+          PROTECT(ans = expr);
+      }
+      else {
+          expr = PROTECT(lang3(R_AnnotationSymbol, lang2(install("expression"), annotation), expr));
+          UNPROTECT(1);
+          PROTECT(ans = expr);
+      }
   } else {
       PROTECT(ans = expr);
   }
   return ans;
 }
 
-static SEXP xxannotate(SEXP op, SEXP annotations, SEXP expr) {
-
+static SEXP xxannotationlist(SEXP annotation) {
   SEXP ans;
-  SEXP parameter_annotations;
-  if(TYPEOF(expr) == LANGSXP &&
-     TYPEOF(CAR(expr)) == SYMSXP &&
-     !strcmp(CHAR(PRINTNAME(CAR(expr))), "function")) {
-    PROTECT(parameter_annotations = getAttrib(CADR(expr), R_AnnotationSymbol));
-    if(parameter_annotations != R_NilValue) {
-      setAttrib(CADR(expr), R_AnnotationSymbol, R_NilValue);
-    }
-      /* SEXP args = xxsublist2(xxsublist2(xxsublist1(xxsub1(list1(), NULL)), */
-      /*                                   xxsublist1(xxsub1(expr, NULL))), */
-      /*                        xxsublist1(xxsub1(annotations, NULL))); */
-    UNPROTECT(1);
-    PROTECT(ans = lang4(op, annotations, expr, parameter_annotations));
-  } else {
-    PROTECT(ans = lang3(op, annotations, expr));
+  if (GenerateCode) {
+    PROTECT(ans = lang2(install("expression"), annotation));
   }
-
-  return ans;
-}
-
-static SEXP xxannotationlist1(SEXP annotation) {
-  SEXP ans;
-  if (GenerateCode)
-    PROTECT(ans = list1(annotation));
   else
     PROTECT(ans = R_NilValue);
   return ans;
 }
 
-static SEXP xxannotationlist2(SEXP annotation_list, SEXP annotation) {
+static SEXP xxprependannotation(SEXP annotation, SEXP annotation_list) {
+    SEXP ans;
+    if (GenerateCode) {
+        PROTECT(annotation);
+        PROTECT(annotation_list);
+        annotation_list = PROTECT(LCONS(install("expression"), annotation_list));
+        SETCADR(annotation_list, annotation);
+        UNPROTECT(2);
+        PROTECT(ans = annotation_list);
+    } else
+        PROTECT(ans = R_NilValue);
+    return ans;
+}
+
+static SEXP xxappendannotation(SEXP annotation_list, SEXP annotation) {
   SEXP ans;
-  if (GenerateCode)
-    PROTECT(ans = listAppend(annotation_list, list1(annotation)));
+  if (GenerateCode) {
+      PROTECT(annotation_list);
+      PROTECT(annotation);
+      SEXP node = annotation_list;
+      while (CDR(node) != R_NilValue) {
+        node = CDR(node);
+      }
+      SETCDR(node, CONS(annotation, R_NilValue));
+      UNPROTECT(2);
+      PROTECT(ans = annotation_list);
+  }
   else
     PROTECT(ans = R_NilValue);
   return ans;
@@ -3571,7 +3554,7 @@ SEXP attribute_visible parse_with_annotations(SEXP text)
     int i;
     ParseStatus status;
     R_WholeSrcrefSymbol = Rf_install("wholeSrcref");
-    R_AnnotationSymbol = Rf_install("annotation");
+    R_AnnotationSymbol = Rf_install("@:");
 	s = R_NilValue;
 	if (Rf_length(text) > 0) {
 	/* If 'text' has known encoding then we can be sure it will be
