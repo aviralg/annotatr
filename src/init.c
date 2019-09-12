@@ -2,10 +2,13 @@
 #include <R_ext/Visibility.h>
 #include "gram.h"
 #include "version.h"
+#include "trampoline.h"
 
 static const R_CallMethodDef CallEntries[] = {
     {"parse_with_annotations", (DL_FUNC)&parse_with_annotations, 1},
     {"get_git_version", (DL_FUNC)&get_git_version, 0},
+    {"override_parser", (DL_FUNC)&override_parser, 0},
+    {"reset_parser", (DL_FUNC)&reset_parser, 0},
     {NULL, NULL, 0}};
 
 void attribute_visible R_init_annotatr(DllInfo *dll) {
