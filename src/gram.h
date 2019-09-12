@@ -3,6 +3,7 @@
 
 #include <Rinternals.h>
 
-SEXP attribute_visible parse_with_annotations(SEXP text);
+SEXP parse_with_annotations(SEXP text);
+int yyparse(void);
 
 #endif /* ANNOTATR_GRAM_H */

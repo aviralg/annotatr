@@ -3,3 +3,5 @@ all: $(SHLIB)
 gram.c: gram.y
 	bison -v gram.y -o gram.c
 
+GIT_COMMIT_INFO != git log --pretty=oneline -1
+PKG_CFLAGS=-DGIT_COMMIT_INFO='"$(GIT_COMMIT_INFO)"' -g3 -O2 -ggdb3
