@@ -44,7 +44,7 @@ test_that("functions with header annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(ann1),
+            `@:`(NULL, ann1,
                  function(f, x, y) {
                      f(x + y)
                  })
@@ -58,7 +58,7 @@ test_that("functions with header annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(ann1),
+            `@:`(NULL, ann1,
                  function(f, x, y) {
                      f(x + y)
                  })
@@ -73,10 +73,11 @@ test_that("functions with header annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(ann1, ann2),
-                 function(f, x, y) {
-                     f(x + y)
-                 })
+            `@:`(NULL, ann1,
+                 `@:`(NULL, ann2,
+                      function(f, x, y) {
+                          f(x + y)
+                      }))
         )
     )
 
@@ -89,10 +90,11 @@ test_that("functions with header annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(ann1, ann2),
-                 function(f, x, y) {
-                     f(x + y)
-                 })
+            `@:`(NULL, ann1,
+                 `@:`(NULL, ann2,
+                      function(f, x, y) {
+                          f(x + y)
+                      }))
         )
     )
 
@@ -104,10 +106,11 @@ test_that("functions with header annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(ann1, ann2),
-                 function(f, x, y) {
-                     f(x + y)
-                 })
+            `@:`(NULL, ann1,
+                 `@:`(NULL, ann2,
+                      function(f, x, y) {
+                          f(x + y)
+                      }))
         )
     )
 
@@ -120,10 +123,13 @@ test_that("functions with header annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(ann1, ann2, ann3, ann4),
-                 function(f, x, y) {
-                     f(x + y)
-                 })
+            `@:`(NULL, ann1,
+                 `@:`(NULL, ann2,
+                      `@:`(NULL, ann3,
+                           `@:`(NULL, ann4,
+                                function(f, x, y) {
+                                    f(x + y)
+                                }))))
         )
     )
 
@@ -136,10 +142,13 @@ test_that("functions with header annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(ann1, ann2, ann3, ann4),
-                 function() {
-                     1 + 2
-                 })
+            `@:`(NULL, ann1,
+                 `@:`(NULL, ann2,
+                      `@:`(NULL, ann3,
+                           `@:`(NULL, ann4,
+                                function() {
+                                    1 + 2
+                                }))))
         )
     )
 
@@ -155,7 +164,7 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11))),
+            `@:`(f, ann11,
                  function(f, x) {
                      f(x)
                  })
@@ -169,10 +178,11 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11, ann12))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(f, ann11,
+                 `@:`(f, ann12,
+                      function(f, x) {
+                          f(x)
+                      }))
         )
     )
 
@@ -184,10 +194,11 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11, ann12))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(f, ann11,
+                 `@:`(f, ann12,
+                      function(f, x) {
+                          f(x)
+                      }))
         )
     )
 
@@ -199,10 +210,12 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11, ann12, ann13))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(f, ann11,
+                 `@:`(f, ann12,
+                      `@:`(f, ann13,
+                           function(f, x) {
+                               f(x)
+                           })))
         )
     )
 
@@ -214,10 +227,13 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11, ann12, ann13, ann14))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(f, ann11,
+                 `@:`(f, ann12,
+                      `@:`(f, ann13,
+                           `@:`(f, ann14,
+                                function(f, x) {
+                                    f(x)
+                                }))))
         )
     )
 
@@ -228,7 +244,7 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(x = expression(ann21))),
+            `@:`(x, ann21,
                  function(f, x) {
                      f(x)
                  })
@@ -242,10 +258,11 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(x = expression(ann21, ann22))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(x, ann21,
+                 `@:`(x, ann22,
+                      function(f, x) {
+                          f(x)
+                      }))
         )
     )
 
@@ -257,10 +274,11 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(x = expression(ann21, ann22))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(x, ann21,
+                 `@:`(x, ann22,
+                      function(f, x) {
+                          f(x)
+                      }))
         )
     )
 
@@ -272,10 +290,12 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(x = expression(ann21, ann22, ann23))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(x, ann21,
+                 `@:`(x, ann22,
+                      `@:`(x, ann23,
+                           function(f, x) {
+                               f(x)
+                           })))
         )
     )
 
@@ -287,10 +307,13 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(x = expression(ann21, ann22, ann23, ann24))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(x, ann21,
+                 `@:`(x, ann22,
+                      `@:`(x, ann23,
+                           `@:`(x, ann24,
+                                function(f, x) {
+                                    f(x)
+                                }))))
         )
     )
 
@@ -301,11 +324,11 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11),
-                                                 x = expression(ann21))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(f, ann11,
+                 `@:`(x, ann21,
+                      function(f, x) {
+                          f(x)
+                      }))
         )
     )
 
@@ -316,11 +339,13 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11, ann12),
-                                                 x = expression(ann21, ann22))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(f, ann11,
+                 `@:`(f, ann12,
+                      `@:`(x, ann21,
+                           `@:`(x, ann22,
+                                function(f, x) {
+                                    f(x)
+                                }))))
         )
     )
 
@@ -334,11 +359,13 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11, ann12),
-                                                 x = expression(ann21, ann22))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(f, ann11,
+                 `@:`(f, ann12,
+                      `@:`(x, ann21,
+                           `@:`(x, ann22,
+                                function(f, x) {
+                                    f(x)
+                                }))))
         )
     )
 
@@ -352,11 +379,15 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11, ann12, ann13),
-                                                 x = expression(ann21, ann22, ann23))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(f, ann11,
+                 `@:`(f, ann12,
+                      `@:`(f, ann13,
+                           `@:`(x, ann21,
+                                `@:`(x, ann22,
+                                     `@:`(x, ann23,
+                                          function(f, x) {
+                                              f(x)
+                                          }))))))
         )
     )
 
@@ -370,11 +401,17 @@ test_that("functions with parameter annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11, ann12, ann13, ann14),
-                                                 x = expression(ann21, ann22, ann23, ann24))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(f, ann11,
+                 `@:`(f, ann12,
+                      `@:`(f, ann13,
+                           `@:`(f, ann14,
+                                `@:`(x, ann21,
+                                     `@:`(x, ann22,
+                                          `@:`(x, ann23,
+                                               `@:`(x, ann24,
+                                                    function(f, x) {
+                                                        f(x)
+                                                    }))))))))
         )
     )
 })
@@ -391,7 +428,7 @@ test_that("functions with body annotations are parsed correctly", {
         ),
         expression(
             function(f, x)
-                `@:`(expression(ann1),
+                `@:`(NULL, ann1,
                 {
                     f(x)
                 })
@@ -407,10 +444,11 @@ test_that("functions with body annotations are parsed correctly", {
         ),
         expression(
             function(f, x)
-                `@:`(expression(ann1, ann2),
-                {
-                    f(x)
-                })
+                `@:`(NULL, ann1,
+                     `@:`(NULL, ann2,
+                     {
+                         f(x)
+                     }))
         )
     )
 
@@ -423,10 +461,11 @@ test_that("functions with body annotations are parsed correctly", {
         ),
         expression(
             function(f, x)
-                `@:`(expression(ann1, ann2),
-                {
-                    f(x)
-                })
+                `@:`(NULL, ann1,
+                     `@:`(NULL, ann2,
+                     {
+                         f(x)
+                     }))
         )
     )
 
@@ -439,10 +478,12 @@ test_that("functions with body annotations are parsed correctly", {
         ),
         expression(
             function(f, x)
-                `@:`(expression(ann1, ann2, ann3),
-                {
-                    f(x)
-                })
+                `@:`(NULL, ann1,
+                     `@:`(NULL, ann2,
+                          `@:`(NULL, ann3,
+                          {
+                              f(x)
+                          })))
         )
     )
 
@@ -455,10 +496,13 @@ test_that("functions with body annotations are parsed correctly", {
         ),
         expression(
             function(f, x)
-                `@:`(expression(ann1, ann2, ann3, ann4),
-                {
-                    f(x)
-                })
+                `@:`(NULL, ann1,
+                     `@:`(NULL, ann2,
+                          `@:`(NULL, ann3,
+                               `@:`(NULL, ann4,
+                               {
+                                   f(x)
+                               }))))
         )
     )
 
@@ -471,10 +515,13 @@ test_that("functions with body annotations are parsed correctly", {
         ),
         expression(
             function()
-                `@:`(expression(ann1, ann2, ann3, ann4),
-                {
-                    1 + 2
-                })
+                `@:`(NULL, ann1,
+                     `@:`(NULL, ann2,
+                          `@:`(NULL, ann3,
+                               `@:`(NULL, ann4,
+                               {
+                                   1 + 2
+                               }))))
         )
     )
 })
@@ -494,12 +541,21 @@ test_that("functions with header and parameter annotations are parsed correctly"
             "}"
         ),
         expression(
-            `@:`(expression(ann1, ann2, ann3, ann4,
-                            formals = expression(f = expression(ann11, ann12, ann13, ann14),
-                                                 x = expression(ann21, ann22, ann23, ann24))),
-                 function(f, x) {
-                     f(x)
-                 })
+            `@:`(NULL, ann1,
+                 `@:`(NULL, ann2,
+                      `@:`(NULL, ann3,
+                           `@:`(NULL, ann4,
+                                `@:`(f, ann11,
+                                     `@:`(f, ann12,
+                                          `@:`(f, ann13,
+                                               `@:`(f, ann14,
+                                                    `@:`(x, ann21,
+                                                         `@:`(x, ann22,
+                                                              `@:`(x, ann23,
+                                                                   `@:`(x, ann24,
+                                                                        function(f, x) {
+                                                                            f(x)
+                                                                        }))))))))))))
         )
     )
 
@@ -518,11 +574,18 @@ test_that("functions with header and body annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(ann1, ann2, ann3, ann4),
-                 function(f, x)
-                     `@:`(expression(ann5, ann6, ann7, ann8), {
-                         f(x)
-                     }))
+            `@:`(NULL, ann1,
+                 `@:`(NULL, ann2,
+                      `@:`(NULL, ann3,
+                           `@:`(NULL, ann4,
+                                function(f, x)
+                                    `@:`(NULL, ann5,
+                                         `@:`(NULL, ann6,
+                                              `@:`(NULL, ann7,
+                                                   `@:`(NULL, ann8,
+                                                   {
+                                                       f(x)
+                                                   }))))))))
         )
     )
 
@@ -536,11 +599,18 @@ test_that("functions with header and body annotations are parsed correctly", {
             "}"
         ),
         expression(
-            `@:`(expression(ann1, ann2, ann3, ann4),
-                 function()
-                     `@:`(expression(ann5, ann6, ann7, ann8), {
-                         1 + 2
-                     }))
+            `@:`(NULL, ann1,
+                 `@:`(NULL, ann2,
+                      `@:`(NULL, ann3,
+                           `@:`(NULL, ann4,
+                                function()
+                                    `@:`(NULL, ann5,
+                                         `@:`(NULL, ann6,
+                                              `@:`(NULL, ann7,
+                                                   `@:`(NULL, ann8,
+                                                   {
+                                                       1 + 2
+                                                   }))))))))
         )
     )
 })
@@ -559,12 +629,22 @@ test_that("functions with parameter and body annotations are parsed correctly", 
             "}"
         ),
         expression(
-            `@:`(expression(formals = expression(f = expression(ann11, ann12, ann13, ann14),
-                                                 x = expression(ann21, ann22, ann23, ann24))),
-                 function(f, x)
-                     `@:`(expression(ann1, ann2, ann3, ann4), {
-                         f(x)
-                     }))
+            `@:`(f, ann11,
+                 `@:`(f, ann12,
+                      `@:`(f, ann13,
+                           `@:`(f, ann14,
+                                `@:`(x, ann21,
+                                     `@:`(x, ann22,
+                                          `@:`(x, ann23,
+                                               `@:`(x, ann24,
+                                                    function(f, x)
+                                                        `@:`(NULL, ann1,
+                                                             `@:`(NULL, ann2,
+                                                                  `@:`(NULL, ann3,
+                                                                       `@:`(NULL, ann4,
+                                                                       {
+                                                                           f(x)
+                                                                       }))))))))))))
         )
     )
 })
@@ -585,13 +665,26 @@ test_that("functions with header, parameter and body annotations are parsed corr
             "}"
         ),
         expression(
-            `@:`(expression(ann1, ann2, ann3, ann4,
-                            formals = expression(f = expression(ann11, ann12, ann13, ann14),
-                                                 x = expression(ann21, ann22, ann23, ann24))),
-                 function(f, x)
-                     `@:`(expression(ann5, ann6, ann7, ann8), {
-                         f(x)
-                     }))
+            `@:`(NULL, ann1,
+                 `@:`(NULL, ann2,
+                      `@:`(NULL, ann3,
+                           `@:`(NULL, ann4,
+                                `@:`(f, ann11,
+                                     `@:`(f, ann12,
+                                          `@:`(f, ann13,
+                                               `@:`(f, ann14,
+                                                    `@:`(x, ann21,
+                                                         `@:`(x, ann22,
+                                                              `@:`(x, ann23,
+                                                                   `@:`(x, ann24,
+                                                                        function(f, x)
+                                                                            `@:`(NULL, ann5,
+                                                                                 `@:`(NULL, ann6,
+                                                                                      `@:`(NULL, ann7,
+                                                                                           `@:`(NULL, ann8,
+                                                                                           {
+                                                                                               f(x)
+                                                                                           }))))))))))))))))
         )
     )
 })

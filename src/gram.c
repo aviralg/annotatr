@@ -353,14 +353,15 @@ static SEXP	xxparen(SEXP, SEXP);
 static SEXP	xxsubscript(SEXP, SEXP, SEXP);
 static SEXP	xxexprlist(SEXP, YYLTYPE *, SEXP);
 static int	xxvalue(SEXP, int, YYLTYPE *);
-static SEXP xxannotate(SEXP, SEXP);
+static SEXP xxannotate(SEXP, SEXP, SEXP);
 static SEXP xxannotationlist(SEXP);
 static SEXP xxprependannotation(SEXP, SEXP);
-static SEXP xxappendannotation(SEXP, SEXP);
+void add_formal_annotation(SEXP formlist, SEXP annotations, SEXP sym, SEXP arg);
 #define YYSTYPE		SEXP
 
+    
 
-#line 364 "gram.c"
+#line 365 "gram.c"
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus
@@ -789,7 +790,7 @@ static const yytype_uint16 yyrline[] =
      436,   437,   438,   442,   445,   448,   452,   453,   454,   455,
      456,   457,   460,   461,   464,   465,   466,   467,   468,   469,
      470,   471,   474,   475,   476,   477,   478,   479,   480,   481,
-     482,   486
+     482,   485
 };
 #endif
 
@@ -1944,665 +1945,665 @@ yyreduce:
   case 2:
 #line 338 "gram.y"
     { YYACCEPT; }
-#line 1948 "gram.c"
+#line 1949 "gram.c"
     break;
 
   case 3:
 #line 339 "gram.y"
     { yyresult = xxvalue(NULL,2,NULL);	goto yyreturn; }
-#line 1954 "gram.c"
+#line 1955 "gram.c"
     break;
 
   case 4:
 #line 340 "gram.y"
     { yyresult = xxvalue(yyvsp[-1],3,&(yylsp[-1]));	goto yyreturn; }
-#line 1960 "gram.c"
+#line 1961 "gram.c"
     break;
 
   case 5:
 #line 341 "gram.y"
     { yyresult = xxvalue(yyvsp[-1],4,&(yylsp[-1]));	goto yyreturn; }
-#line 1966 "gram.c"
+#line 1967 "gram.c"
     break;
 
   case 6:
 #line 342 "gram.y"
     { YYABORT; }
-#line 1972 "gram.c"
+#line 1973 "gram.c"
     break;
 
   case 7:
 #line 345 "gram.y"
     { yyval = yyvsp[0]; }
-#line 1978 "gram.c"
+#line 1979 "gram.c"
     break;
 
   case 8:
 #line 346 "gram.y"
     { yyval = yyvsp[0]; }
-#line 1984 "gram.c"
+#line 1985 "gram.c"
     break;
 
   case 9:
 #line 349 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
-#line 1990 "gram.c"
+#line 1991 "gram.c"
     break;
 
   case 10:
 #line 352 "gram.y"
     { yyval = yyvsp[0]; setId(yyval, (yyloc)); }
-#line 1996 "gram.c"
+#line 1997 "gram.c"
     break;
 
   case 11:
 #line 353 "gram.y"
     { yyval = xxbinary(yyvsp[-2],yyvsp[-3],yyvsp[-1]); setId(yyval, (yyloc)); }
-#line 2002 "gram.c"
+#line 2003 "gram.c"
     break;
 
   case 12:
 #line 354 "gram.y"
     { yyval = xxsubscript(yyvsp[-3],yyvsp[-2],yyvsp[-1]); setId(yyval, (yyloc)); }
-#line 2008 "gram.c"
+#line 2009 "gram.c"
     break;
 
   case 13:
 #line 355 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2], yyvsp[0]); setId( yyval, (yyloc)); }
-#line 2014 "gram.c"
+#line 2015 "gram.c"
     break;
 
   case 14:
 #line 356 "gram.y"
     { yyval = xxbinary(yyvsp[-2],yyvsp[-3],yyvsp[-1]);	setId( yyval, (yyloc)); }
-#line 2020 "gram.c"
+#line 2021 "gram.c"
     break;
 
   case 15:
 #line 357 "gram.y"
     { yyval = xxbinary(yyvsp[-2],yyvsp[-3],yyvsp[-1]);	setId( yyval, (yyloc)); }
-#line 2026 "gram.c"
+#line 2027 "gram.c"
     break;
 
   case 16:
 #line 358 "gram.y"
     { yyval = PROTECT(install("?")); }
-#line 2032 "gram.c"
+#line 2033 "gram.c"
     break;
 
   case 17:
 #line 359 "gram.y"
     { yyval = xxparen(yyvsp[-2],yyvsp[-1]);	setId( yyval, (yyloc)); }
-#line 2038 "gram.c"
+#line 2039 "gram.c"
     break;
 
   case 18:
 #line 362 "gram.y"
     { yyval = yyvsp[0]; setId(yyval, (yyloc)); }
-#line 2044 "gram.c"
+#line 2045 "gram.c"
     break;
 
   case 19:
 #line 363 "gram.y"
     { yyval = yyvsp[-1]; setId(yyval, (yyloc)); }
-#line 2050 "gram.c"
+#line 2051 "gram.c"
     break;
 
   case 20:
 #line 367 "gram.y"
     { yyval = xxannotationlist(yyvsp[0]); }
-#line 2056 "gram.c"
+#line 2057 "gram.c"
     break;
 
   case 21:
 #line 368 "gram.y"
-    { yyval = xxappendannotation(yyvsp[-2], yyvsp[0]); }
-#line 2062 "gram.c"
+    { yyval = xxprependannotation(yyvsp[0], yyvsp[-2]); }
+#line 2063 "gram.c"
     break;
 
   case 22:
 #line 371 "gram.y"
     { yyval = xxexprlist0();	setId( yyval, (yyloc)); }
-#line 2068 "gram.c"
+#line 2069 "gram.c"
     break;
 
   case 23:
 #line 372 "gram.y"
     { yyval = xxexprlist1(yyvsp[0], &(yylsp[0])); }
-#line 2074 "gram.c"
+#line 2075 "gram.c"
     break;
 
   case 24:
 #line 373 "gram.y"
     { yyval = xxexprlist2(yyvsp[-3], yyvsp[0], &(yylsp[0])); }
-#line 2080 "gram.c"
+#line 2081 "gram.c"
     break;
 
   case 25:
 #line 376 "gram.y"
     { yyval = yyvsp[0];	setId( yyval, (yyloc)); }
-#line 2086 "gram.c"
+#line 2087 "gram.c"
     break;
 
   case 26:
 #line 377 "gram.y"
     { yyval = yyvsp[0];	setId( yyval, (yyloc)); }
-#line 2092 "gram.c"
+#line 2093 "gram.c"
     break;
 
   case 27:
 #line 378 "gram.y"
     { yyval = yyvsp[0];	setId( yyval, (yyloc)); }
-#line 2098 "gram.c"
+#line 2099 "gram.c"
     break;
 
   case 28:
 #line 379 "gram.y"
     { yyval = yyvsp[0];	setId( yyval, (yyloc)); }
-#line 2104 "gram.c"
+#line 2105 "gram.c"
     break;
 
   case 29:
 #line 381 "gram.y"
     { yyval = xxexprlist(yyvsp[-2],&(yylsp[-2]),yyvsp[-1]); setId( yyval, (yyloc)); }
-#line 2110 "gram.c"
+#line 2111 "gram.c"
     break;
 
   case 30:
 #line 382 "gram.y"
     { yyval = xxparen(yyvsp[-2],yyvsp[-1]);	setId( yyval, (yyloc)); }
-#line 2116 "gram.c"
+#line 2117 "gram.c"
     break;
 
   case 31:
 #line 384 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2122 "gram.c"
+#line 2123 "gram.c"
     break;
 
   case 32:
 #line 385 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2128 "gram.c"
+#line 2129 "gram.c"
     break;
 
   case 33:
 #line 386 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2134 "gram.c"
+#line 2135 "gram.c"
     break;
 
   case 34:
 #line 387 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2140 "gram.c"
+#line 2141 "gram.c"
     break;
 
   case 35:
 #line 388 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2146 "gram.c"
+#line 2147 "gram.c"
     break;
 
   case 36:
 #line 390 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2152 "gram.c"
+#line 2153 "gram.c"
     break;
 
   case 37:
 #line 391 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2158 "gram.c"
+#line 2159 "gram.c"
     break;
 
   case 38:
 #line 392 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2164 "gram.c"
+#line 2165 "gram.c"
     break;
 
   case 39:
 #line 393 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2170 "gram.c"
+#line 2171 "gram.c"
     break;
 
   case 40:
 #line 394 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2176 "gram.c"
+#line 2177 "gram.c"
     break;
 
   case 41:
 #line 395 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2182 "gram.c"
+#line 2183 "gram.c"
     break;
 
   case 42:
 #line 396 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2188 "gram.c"
+#line 2189 "gram.c"
     break;
 
   case 43:
 #line 397 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2194 "gram.c"
+#line 2195 "gram.c"
     break;
 
   case 44:
 #line 398 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2200 "gram.c"
+#line 2201 "gram.c"
     break;
 
   case 45:
 #line 399 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2206 "gram.c"
+#line 2207 "gram.c"
     break;
 
   case 46:
 #line 400 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2212 "gram.c"
+#line 2213 "gram.c"
     break;
 
   case 47:
 #line 401 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2218 "gram.c"
+#line 2219 "gram.c"
     break;
 
   case 48:
 #line 402 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2224 "gram.c"
+#line 2225 "gram.c"
     break;
 
   case 49:
 #line 403 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2230 "gram.c"
+#line 2231 "gram.c"
     break;
 
   case 50:
 #line 404 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2236 "gram.c"
+#line 2237 "gram.c"
     break;
 
   case 51:
 #line 405 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2242 "gram.c"
+#line 2243 "gram.c"
     break;
 
   case 52:
 #line 406 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2248 "gram.c"
+#line 2249 "gram.c"
     break;
 
   case 53:
 #line 407 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2254 "gram.c"
+#line 2255 "gram.c"
     break;
 
   case 54:
 #line 408 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2260 "gram.c"
+#line 2261 "gram.c"
     break;
 
   case 55:
 #line 409 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2266 "gram.c"
+#line 2267 "gram.c"
     break;
 
   case 56:
 #line 411 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2272 "gram.c"
+#line 2273 "gram.c"
     break;
 
   case 57:
 #line 412 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[0],yyvsp[-2]);	setId( yyval, (yyloc)); }
-#line 2278 "gram.c"
+#line 2279 "gram.c"
     break;
 
   case 58:
 #line 414 "gram.y"
     { yyval = xxdefun(yyvsp[-5],yyvsp[-3],yyvsp[0],&(yyloc)); 	setId( yyval, (yyloc)); }
-#line 2284 "gram.c"
+#line 2285 "gram.c"
     break;
 
   case 59:
 #line 415 "gram.y"
     { yyval = xxfuncall(yyvsp[-3],yyvsp[-1]);  setId( yyval, (yyloc)); modif_token( &(yylsp[-3]), SYMBOL_FUNCTION_CALL ) ; }
-#line 2290 "gram.c"
+#line 2291 "gram.c"
     break;
 
   case 60:
 #line 416 "gram.y"
     { yyval = xxif(yyvsp[-2],yyvsp[-1],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2296 "gram.c"
+#line 2297 "gram.c"
     break;
 
   case 61:
 #line 417 "gram.y"
     { yyval = xxifelse(yyvsp[-4],yyvsp[-3],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2302 "gram.c"
+#line 2303 "gram.c"
     break;
 
   case 62:
 #line 418 "gram.y"
     { yyval = xxfor(yyvsp[-2],yyvsp[-1],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2308 "gram.c"
+#line 2309 "gram.c"
     break;
 
   case 63:
 #line 419 "gram.y"
     { yyval = xxwhile(yyvsp[-2],yyvsp[-1],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2314 "gram.c"
+#line 2315 "gram.c"
     break;
 
   case 64:
 #line 420 "gram.y"
     { yyval = xxrepeat(yyvsp[-1],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2320 "gram.c"
+#line 2321 "gram.c"
     break;
 
   case 65:
 #line 421 "gram.y"
     { yyval = xxsubscript(yyvsp[-4],yyvsp[-3],yyvsp[-2]);	setId( yyval, (yyloc)); }
-#line 2326 "gram.c"
+#line 2327 "gram.c"
     break;
 
   case 66:
 #line 422 "gram.y"
     { yyval = xxsubscript(yyvsp[-3],yyvsp[-2],yyvsp[-1]);	setId( yyval, (yyloc)); }
-#line 2332 "gram.c"
+#line 2333 "gram.c"
     break;
 
   case 67:
 #line 423 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);      setId( yyval, (yyloc)); modif_token( &(yylsp[-2]), SYMBOL_PACKAGE ) ; }
-#line 2338 "gram.c"
+#line 2339 "gram.c"
     break;
 
   case 68:
 #line 424 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);      setId( yyval, (yyloc)); modif_token( &(yylsp[-2]), SYMBOL_PACKAGE ) ; }
-#line 2344 "gram.c"
+#line 2345 "gram.c"
     break;
 
   case 69:
 #line 425 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2350 "gram.c"
+#line 2351 "gram.c"
     break;
 
   case 70:
 #line 426 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2356 "gram.c"
+#line 2357 "gram.c"
     break;
 
   case 71:
 #line 427 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);      setId( yyval, (yyloc)); modif_token( &(yylsp[-2]), SYMBOL_PACKAGE ) ;}
-#line 2362 "gram.c"
+#line 2363 "gram.c"
     break;
 
   case 72:
 #line 428 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);      setId( yyval, (yyloc)); modif_token( &(yylsp[-2]), SYMBOL_PACKAGE ) ;}
-#line 2368 "gram.c"
+#line 2369 "gram.c"
     break;
 
   case 73:
 #line 429 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2374 "gram.c"
+#line 2375 "gram.c"
     break;
 
   case 74:
 #line 430 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2380 "gram.c"
+#line 2381 "gram.c"
     break;
 
   case 75:
 #line 431 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2386 "gram.c"
+#line 2387 "gram.c"
     break;
 
   case 76:
 #line 432 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2392 "gram.c"
+#line 2393 "gram.c"
     break;
 
   case 77:
 #line 433 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);      setId( yyval, (yyloc)); modif_token( &(yylsp[0]), SLOT ) ; }
-#line 2398 "gram.c"
+#line 2399 "gram.c"
     break;
 
   case 78:
 #line 434 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2404 "gram.c"
+#line 2405 "gram.c"
     break;
 
   case 79:
 #line 435 "gram.y"
     { yyval = xxnxtbrk(yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2410 "gram.c"
+#line 2411 "gram.c"
     break;
 
   case 80:
 #line 436 "gram.y"
     { yyval = xxnxtbrk(yyvsp[0]);	setId( yyval, (yyloc)); }
-#line 2416 "gram.c"
+#line 2417 "gram.c"
     break;
 
   case 81:
 #line 437 "gram.y"
-    { yyval = xxannotate(yyvsp[-1], yyvsp[0]); setId(yyval, (yyloc)); }
-#line 2422 "gram.c"
+    { yyval = xxannotate(R_NilValue, yyvsp[-1], yyvsp[0]); setId(yyval, (yyloc)); }
+#line 2423 "gram.c"
     break;
 
   case 82:
 #line 438 "gram.y"
-    { yyval = xxannotate(yyvsp[-2], yyvsp[0]); setId(yyval, (yyloc)); }
-#line 2428 "gram.c"
+    { yyval = xxannotate(R_NilValue, yyvsp[-2], yyvsp[0]); setId(yyval, (yyloc)); }
+#line 2429 "gram.c"
     break;
 
   case 83:
 #line 442 "gram.y"
     { yyval = xxcond(yyvsp[-1]);   }
-#line 2434 "gram.c"
+#line 2435 "gram.c"
     break;
 
   case 84:
 #line 445 "gram.y"
     { yyval = xxifcond(yyvsp[-1]); }
-#line 2440 "gram.c"
+#line 2441 "gram.c"
     break;
 
   case 85:
 #line 448 "gram.y"
     { yyval = xxforcond(yyvsp[-3],yyvsp[-1]);	setId( yyval, (yyloc)); }
-#line 2446 "gram.c"
+#line 2447 "gram.c"
     break;
 
   case 86:
 #line 452 "gram.y"
     { yyval = xxexprlist0();	setId( yyval, (yyloc)); }
-#line 2452 "gram.c"
+#line 2453 "gram.c"
     break;
 
   case 87:
 #line 453 "gram.y"
     { yyval = xxexprlist1(yyvsp[0], &(yylsp[0])); }
-#line 2458 "gram.c"
+#line 2459 "gram.c"
     break;
 
   case 88:
 #line 454 "gram.y"
     { yyval = xxexprlist2(yyvsp[-2], yyvsp[0], &(yylsp[0])); }
-#line 2464 "gram.c"
+#line 2465 "gram.c"
     break;
 
   case 89:
 #line 455 "gram.y"
     { yyval = yyvsp[-1];		setId( yyval, (yyloc)); }
-#line 2470 "gram.c"
+#line 2471 "gram.c"
     break;
 
   case 90:
 #line 456 "gram.y"
     { yyval = xxexprlist2(yyvsp[-2], yyvsp[0], &(yylsp[0])); }
-#line 2476 "gram.c"
+#line 2477 "gram.c"
     break;
 
   case 91:
 #line 457 "gram.y"
     { yyval = yyvsp[-1];}
-#line 2482 "gram.c"
+#line 2483 "gram.c"
     break;
 
   case 92:
 #line 460 "gram.y"
     { yyval = xxsublist1(yyvsp[0]);	  }
-#line 2488 "gram.c"
+#line 2489 "gram.c"
     break;
 
   case 93:
 #line 461 "gram.y"
     { yyval = xxsublist2(yyvsp[-3],yyvsp[0]); }
-#line 2494 "gram.c"
+#line 2495 "gram.c"
     break;
 
   case 94:
 #line 464 "gram.y"
     { yyval = xxsub0();	 }
-#line 2500 "gram.c"
+#line 2501 "gram.c"
     break;
 
   case 95:
 #line 465 "gram.y"
     { yyval = xxsub1(yyvsp[0], &(yylsp[0]));  }
-#line 2506 "gram.c"
+#line 2507 "gram.c"
     break;
 
   case 96:
 #line 466 "gram.y"
     { yyval = xxsymsub0(yyvsp[-1], &(yylsp[-1])); 	modif_token( &(yylsp[0]), EQ_SUB ) ; modif_token( &(yylsp[-1]), SYMBOL_SUB ) ; }
-#line 2512 "gram.c"
+#line 2513 "gram.c"
     break;
 
   case 97:
 #line 467 "gram.y"
     { yyval = xxsymsub1(yyvsp[-2],yyvsp[0], &(yylsp[-2])); 	modif_token( &(yylsp[-1]), EQ_SUB ) ; modif_token( &(yylsp[-2]), SYMBOL_SUB ) ; }
-#line 2518 "gram.c"
+#line 2519 "gram.c"
     break;
 
   case 98:
 #line 468 "gram.y"
     { yyval = xxsymsub0(yyvsp[-1], &(yylsp[-1])); 	modif_token( &(yylsp[0]), EQ_SUB ) ; }
-#line 2524 "gram.c"
+#line 2525 "gram.c"
     break;
 
   case 99:
 #line 469 "gram.y"
     { yyval = xxsymsub1(yyvsp[-2],yyvsp[0], &(yylsp[-2])); 	modif_token( &(yylsp[-1]), EQ_SUB ) ; }
-#line 2530 "gram.c"
+#line 2531 "gram.c"
     break;
 
   case 100:
 #line 470 "gram.y"
     { yyval = xxnullsub0(&(yylsp[-1])); 	modif_token( &(yylsp[0]), EQ_SUB ) ; }
-#line 2536 "gram.c"
+#line 2537 "gram.c"
     break;
 
   case 101:
 #line 471 "gram.y"
     { yyval = xxnullsub1(yyvsp[0], &(yylsp[-2])); 	modif_token( &(yylsp[-1]), EQ_SUB ) ; }
-#line 2542 "gram.c"
+#line 2543 "gram.c"
     break;
 
   case 102:
 #line 474 "gram.y"
     { yyval = xxnullformal(); }
-#line 2548 "gram.c"
+#line 2549 "gram.c"
     break;
 
   case 103:
 #line 475 "gram.y"
     { yyval = xxfirstformal0(R_NilValue, yyvsp[0]); 	modif_token( &(yylsp[0]), SYMBOL_FORMALS ) ; }
-#line 2554 "gram.c"
+#line 2555 "gram.c"
     break;
 
   case 104:
 #line 476 "gram.y"
     { yyval = xxfirstformal0(yyvsp[-1], yyvsp[0]); 	modif_token( &(yylsp[0]), SYMBOL_FORMALS ) ; }
-#line 2560 "gram.c"
+#line 2561 "gram.c"
     break;
 
   case 105:
 #line 477 "gram.y"
     { yyval = xxfirstformal1(R_NilValue, yyvsp[-2],yyvsp[0]); 	modif_token( &(yylsp[-2]), SYMBOL_FORMALS ) ; modif_token( &(yylsp[-1]), EQ_FORMALS ) ; }
-#line 2566 "gram.c"
+#line 2567 "gram.c"
     break;
 
   case 106:
 #line 478 "gram.y"
     { yyval = xxfirstformal1(yyvsp[-3], yyvsp[-2],yyvsp[0]);	modif_token( &(yylsp[-2]), SYMBOL_FORMALS ) ; modif_token( &(yylsp[-1]), EQ_FORMALS ) ; }
-#line 2572 "gram.c"
+#line 2573 "gram.c"
     break;
 
   case 107:
 #line 479 "gram.y"
     { yyval = xxaddformal0(yyvsp[-2],yyvsp[0], R_NilValue, &(yylsp[0]));   modif_token( &(yylsp[0]), SYMBOL_FORMALS ) ; }
-#line 2578 "gram.c"
+#line 2579 "gram.c"
     break;
 
   case 108:
 #line 480 "gram.y"
     { yyval = xxaddformal0(yyvsp[-3],yyvsp[0], yyvsp[-1], &(yylsp[0]));  modif_token( &(yylsp[0]), SYMBOL_FORMALS ) ; }
-#line 2584 "gram.c"
+#line 2585 "gram.c"
     break;
 
   case 109:
 #line 481 "gram.y"
     { yyval = xxaddformal1(yyvsp[-4],R_NilValue,yyvsp[-2],yyvsp[0],&(yylsp[-2])); modif_token( &(yylsp[-2]), SYMBOL_FORMALS ) ; modif_token( &(yylsp[-1]), EQ_FORMALS ) ;}
-#line 2590 "gram.c"
+#line 2591 "gram.c"
     break;
 
   case 110:
-#line 483 "gram.y"
+#line 482 "gram.y"
     { yyval = xxaddformal1(yyvsp[-5],yyvsp[-3],yyvsp[-2],yyvsp[0],&(yylsp[-2])); modif_token( &(yylsp[-2]), SYMBOL_FORMALS ) ; modif_token( &(yylsp[-1]), EQ_FORMALS ) ;}
-#line 2596 "gram.c"
+#line 2597 "gram.c"
     break;
 
   case 111:
-#line 486 "gram.y"
+#line 485 "gram.y"
     { EatLines = 1; }
-#line 2602 "gram.c"
+#line 2603 "gram.c"
     break;
 
 
-#line 2606 "gram.c"
+#line 2607 "gram.c"
 
       default: break;
     }
@@ -2840,7 +2841,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 488 "gram.y"
+#line 487 "gram.y"
 
 
 
@@ -3006,14 +3007,10 @@ static SEXP xxnullformal()
 static SEXP xxfirstformal0(SEXP annotations, SEXP sym)
 {
     SEXP ans;
+    UNPROTECT_PTR(sym);
     if (GenerateCode) {
-	     SEXP arg = PROTECT(FirstArg(R_MissingArg, sym));
-       if(annotations != R_NilValue) {
-           SEXP tagged_anns = PROTECT(FirstArg(annotations, sym));
-           setAttrib(CDR(arg), R_AnnotationSymbol, tagged_anns);
-           UNPROTECT(1);
-       }
-       ans = arg;
+	     PROTECT(ans = FirstArg(R_MissingArg, sym));
+       add_formal_annotation(R_NilValue, annotations, sym, ans);
     }
     else
 	PROTECT(ans = R_NilValue);
@@ -3024,13 +3021,8 @@ static SEXP xxfirstformal1(SEXP annotations, SEXP sym, SEXP expr)
 {
     SEXP ans;
     if (GenerateCode) {
-        SEXP arg = PROTECT(FirstArg(expr, sym));
-        if (annotations != R_NilValue) {
-            SEXP tagged_anns = PROTECT(FirstArg(annotations, sym));
-            setAttrib(CDR(arg), R_AnnotationSymbol, tagged_anns);
-            UNPROTECT(1);
-        }
-        ans = expr;
+        PROTECT(ans = FirstArg(expr, sym));
+        add_formal_annotation(R_NilValue, annotations, sym, ans);
     }
     else
 	PROTECT(ans = R_NilValue);
@@ -3044,23 +3036,12 @@ static SEXP xxaddformal0(SEXP formlist, SEXP sym, SEXP annotations, YYLTYPE *llo
     SEXP ans;
     if (GenerateCode) {
         CheckFormalArgs(formlist, sym, lloc);
-        SEXP arg = PROTECT(NextArg(formlist, R_MissingArg, sym));
-        if (annotations != R_NilValue) {
-            SEXP tagged_anns;
-            SEXP previous_anns = getAttrib(CDR(formlist), R_AnnotationSymbol);
-            if(previous_anns != R_NilValue) {
-              tagged_anns = PROTECT(NextArg(previous_anns, annotations, sym));
-            } else {
-              tagged_anns = PROTECT(FirstArg(annotations, sym));
-            }
-            setAttrib(CDR(arg), R_AnnotationSymbol, tagged_anns);
-            UNPROTECT(1);
-        }
-        ans = arg;
+        PROTECT(ans = NextArg(formlist, R_MissingArg, sym));
+        add_formal_annotation(formlist, annotations, sym, ans);
     }
-    else {
+    else
 	PROTECT(ans = R_NilValue);
-    }
+
     UNPROTECT_PTR(sym);
     UNPROTECT_PTR(formlist);
     return ans;
@@ -3069,26 +3050,14 @@ static SEXP xxaddformal0(SEXP formlist, SEXP sym, SEXP annotations, YYLTYPE *llo
 static SEXP xxaddformal1(SEXP formlist, SEXP annotations, SEXP sym, SEXP expr, YYLTYPE *lloc)
 {
     SEXP ans;
-    SEXP arg;
     if (GenerateCode) {
         CheckFormalArgs(formlist, sym, lloc);
-        PROTECT(arg = NextArg(formlist, expr, sym));
-        if (annotations != R_NilValue) {
-            SEXP tagged_anns;
-            SEXP previous_anns = getAttrib(CDR(formlist), R_AnnotationSymbol);
-            if (previous_anns != R_NilValue) {
-                tagged_anns = PROTECT(NextArg(previous_anns, annotations, sym));
-            } else {
-                tagged_anns = PROTECT(FirstArg(annotations, sym));
-            }
-            setAttrib(CDR(arg), R_AnnotationSymbol, tagged_anns);
-            UNPROTECT(1);
-        }
-        ans = arg;
+        PROTECT(ans = NextArg(formlist, expr, sym));
+        add_formal_annotation(formlist, annotations, sym, ans);
     }
-    else {
+    else
 	PROTECT(ans = R_NilValue);
-    }
+
     UNPROTECT_PTR(expr);
     UNPROTECT_PTR(sym);
     UNPROTECT_PTR(formlist);
@@ -3366,27 +3335,32 @@ static SEXP mkString2(const char *s, size_t len, Rboolean escaped)
 
 static SEXP xxdefun(SEXP fname, SEXP formals, SEXP body, YYLTYPE *lloc)
 {
-
     SEXP ans, srcref;
-    int protect_counter = 0;
     if (GenerateCode) {
-    	if (ParseState.keepSrcRefs) {
-    	    srcref = makeSrcref(lloc, ParseState.SrcFile);
-    	    ParseState.didAttach = TRUE;
-    	} else
-    	    srcref = R_NilValue;
-      SEXP formal_anns = getAttrib(CDR(formals), R_AnnotationSymbol);
-      setAttrib(CDR(formals), R_AnnotationSymbol, R_NilValue);
-      SEXP expr = PROTECT(lang4(fname, CDR(formals), body, srcref)); ++protect_counter;
-      if(formal_anns != R_NilValue) {
-        formal_anns = PROTECT(LCONS(install("expression"), CDR(formal_anns))); ++protect_counter;
-        formal_anns = LCONS(install("expression"), CDR(FirstArg(formal_anns, install("formals"))));
-        expr = PROTECT(lang3(R_AnnotationSymbol, formal_anns, expr)); ++protect_counter;
-      }
-      UNPROTECT(protect_counter);
-      PROTECT(ans = expr);
+        if (ParseState.keepSrcRefs) {
+            srcref = makeSrcref(lloc, ParseState.SrcFile);
+            ParseState.didAttach = TRUE;
+        } else
+            srcref = R_NilValue;
+
+        SEXP annotations = getAttrib(CDR(formals), R_AnnotationSymbol);
+        PROTECT(ans = lang4(fname, CDR(formals), body, srcref));
+        SEXP temp_ans;
+        if (annotations != R_NilValue) {
+            setAttrib(CDR(formals), R_AnnotationSymbol, R_NilValue);
+            for (SEXP form_anns = annotations; form_anns != R_NilValue;
+                 form_anns = CDR(form_anns)) {
+                SEXP form_sym = TAG(form_anns);
+                for (SEXP anns = CAR(form_anns); anns != R_NilValue;
+                     anns = CDR(anns)) {
+                    temp_ans = ans;
+                    ans = xxannotate(form_sym, CAR(anns), temp_ans);
+                    UNPROTECT_PTR(temp_ans);
+                }
+            }
+        }
     } else
-	PROTECT(ans = R_NilValue);
+        PROTECT(ans = R_NilValue);
     UNPROTECT_PTR(body);
     UNPROTECT_PTR(formals);
     return ans;
@@ -3470,69 +3444,57 @@ static SEXP xxexprlist(SEXP a1, YYLTYPE *lloc, SEXP a2)
     return ans;
 }
 
-static SEXP xxannotate(SEXP annotation, SEXP expr) {
+void add_formal_annotation(SEXP formlist, SEXP annotations, SEXP sym, SEXP arg) {
+    if (annotations != R_NilValue) {
+        SEXP tagged_anns = R_NilValue;
+        SEXP previous_anns = getAttrib(CDR(formlist), R_AnnotationSymbol);
+        if (previous_anns != R_NilValue) {
+            tagged_anns = PROTECT(LCONS(annotations, previous_anns));
+            SET_TAG(tagged_anns, sym);
+        } else {
+            tagged_anns = PROTECT(lang1(annotations));
+            SET_TAG(tagged_anns, sym);
+        }
+        setAttrib(CDR(arg), R_AnnotationSymbol, tagged_anns);
+        UNPROTECT_PTR(tagged_anns);
+        UNPROTECT_PTR(annotations);
+    }
+}
+
+static SEXP xxannotate(SEXP name, SEXP annotation, SEXP expression) {
   SEXP ans;
-  if (GenerateCode) {
-      if (TYPEOF(expr) == LANGSXP && TYPEOF(CAR(expr)) == SYMSXP &&
-          !strcmp(CHAR(PRINTNAME(CAR(expr))),
-                  CHAR(PRINTNAME(R_AnnotationSymbol)))) {
-          SEXP old_anns = PROTECT(CADR(expr));
-          SEXP new_anns = PROTECT(xxprependannotation(annotation, old_anns));
-          SETCADR(expr, new_anns);
-          UNPROTECT(3);
-          PROTECT(ans = expr);
-      }
-      else {
-          expr = PROTECT(lang3(R_AnnotationSymbol, lang2(install("expression"), annotation), expr));
-          UNPROTECT(1);
-          PROTECT(ans = expr);
-      }
-  } else {
-      PROTECT(ans = expr);
-  }
+  PROTECT(name);
+  PROTECT(annotation);
+  PROTECT(expression);
+  if (GenerateCode)
+    PROTECT(ans = lang4(R_AnnotationSymbol, name, annotation, expression));
+  else
+    PROTECT(ans = R_NilValue);
+  UNPROTECT_PTR(name);
+  UNPROTECT_PTR(expression);
+  UNPROTECT_PTR(annotation);
   return ans;
 }
 
 static SEXP xxannotationlist(SEXP annotation) {
   SEXP ans;
-  if (GenerateCode) {
-    PROTECT(ans = lang2(install("expression"), annotation));
-  }
+  if (GenerateCode)
+    PROTECT(ans = lang1(annotation));
   else
     PROTECT(ans = R_NilValue);
+  UNPROTECT_PTR(annotation);
   return ans;
 }
 
 static SEXP xxprependannotation(SEXP annotation, SEXP annotation_list) {
     SEXP ans;
-    if (GenerateCode) {
-        PROTECT(annotation);
-        PROTECT(annotation_list);
-        annotation_list = PROTECT(LCONS(install("expression"), annotation_list));
-        SETCADR(annotation_list, annotation);
-        UNPROTECT(2);
-        PROTECT(ans = annotation_list);
-    } else
+    if (GenerateCode)
+        PROTECT(ans = LCONS(annotation, annotation_list));
+    else
         PROTECT(ans = R_NilValue);
+    UNPROTECT_PTR(annotation);
+    UNPROTECT_PTR(annotation_list);
     return ans;
-}
-
-static SEXP xxappendannotation(SEXP annotation_list, SEXP annotation) {
-  SEXP ans;
-  if (GenerateCode) {
-      PROTECT(annotation_list);
-      PROTECT(annotation);
-      SEXP node = annotation_list;
-      while (CDR(node) != R_NilValue) {
-        node = CDR(node);
-      }
-      SETCDR(node, CONS(annotation, R_NilValue));
-      UNPROTECT(2);
-      PROTECT(ans = annotation_list);
-  }
-  else
-    PROTECT(ans = R_NilValue);
-  return ans;
 }
 
 /*--------------------------------------------------------------------------*/
